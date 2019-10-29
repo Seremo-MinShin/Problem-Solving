@@ -1,0 +1,46 @@
+#include<bits/stdc++.h>
+#define ll long long
+using namespace std;
+int n,m,K;
+int graph[101][101], where[15], bitDP[1<<14][15],ans=0,tr=0;
+int main(){
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+    cin>>n>>m>>K;
+    for(int i=1;i<=K;i++) {
+		cin>>where[i];
+		if(where[i]==1) tr=1;
+	}
+    int ipt_a,ipt_b,ipt_c;
+    for(int i=1;i<=m;i++){
+    	cin>>ipt_a>>ipt_b>>ipt_c;
+    	graph[ipt_a][ipt_b]=ipt_c;
+    	graph[ipt_b][ipt_a]=ipt_c;
+	}
+	//k i j
+	for(int k=1;k<=n;k++){
+		for(int i=1;i<=n;i++){
+			for(int j=1;j<=n;j++){
+				if(i==j) graph[i][j]=1000;
+				graph[i][j]=max(graph[i][j],min(graph[i][k],graph[k][j]));
+			}
+		}
+	}
+	for(int i=0;i<(1<<K);i++){
+		for(int j=1;j<=K;j++){ //j에서 
+			if(!(i&(1<<(j-1))) && i!=0) continue;
+			for(int k=1;k<=K;k++){//k로 
+				if((i&(1<<(k-1)))==0){
+					if(graph[where[j]][where[k]]>=bitDP[i][j]+1){
+						bitDP[i|(1<<(k-1))][k]=max(bitDP[i|1<<(k-1)][k],bitDP[i][j]+1);
+					} else bitDP[i|1<<(k-1)][k] = max(bitDP[i|1<<(k-1)][k],min(graph[where[j]][where[k]],bitDP[i][j]+1));
+				}
+			}
+		}
+	}
+	for(int i=1;i<=K;i++){
+		if(tr) ans=max(ans, min(graph[where[i]][1], bitDP[(1<<(K-1))-1][i])+1);
+		ans=max(ans, min(graph[where[i]][1], bitDP[(1<<K)-1][i]));
+	}
+	cout<<ans;
+}
