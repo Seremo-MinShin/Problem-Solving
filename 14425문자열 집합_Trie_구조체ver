@@ -1,0 +1,60 @@
+#include<bits/stdc++.h>
+#define ll long long
+using namespace std;
+struct TRIE{
+	struct node{
+		int Go[27];
+		int output;
+	}trie_tree[6000001];
+	int tn; //root = 0
+	void init(){
+		tn=0;
+		trie_tree[0].output=0;
+	}
+	string itrie; int ilen;
+	void insert_trie(int a,int s){//a
+		if(s==ilen){
+			trie_tree[a].output = 1;
+			return;
+		}
+		if(trie_tree[a].Go[itrie[s]-'a']==0){
+			trie_tree[a].Go[itrie[s]-'a'] = ++tn; trie_tree[tn].output=0;
+			insert_trie(tn,s+1);
+		} else {
+			insert_trie(trie_tree[a].Go[itrie[s]-'a'],s+1);
+		}
+	    return;
+	}
+	void INSERT(string s){
+		itrie=s; ilen=s.length();
+		insert_trie(0,0);
+	}
+	string dtrie; int dlen;
+	int find_trie(int a,int s){//a에서 s번째 문자 찾기 
+		if(s==dlen) return trie_tree[a].output;
+		if(trie_tree[a].Go[dtrie[s]-'a']==0){
+			return 0;
+		} else {
+			return find_trie(trie_tree[a].Go[dtrie[s]-'a'],s+1);
+		}
+	}
+	int FIND(string s){
+		dtrie=s; dlen=s.length();
+		return find_trie(0,0);
+	}
+}trie;
+int N,M,ans=0; string ipt;
+int main(){
+    ios_base::sync_with_stdio(false); cin.tie(0);
+    cin>>N>>M;
+    trie.init();
+    for(int i=1;i<=N;i++){
+    	cin>>ipt;
+    	trie.INSERT(ipt);
+	}
+	for(int i=1;i<=M;i++){
+    	cin>>ipt;
+    	ans+=trie.FIND(ipt);
+	}
+	cout<<ans;
+}
