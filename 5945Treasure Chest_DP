@@ -1,0 +1,29 @@
+#include<bits/stdc++.h>
+using namespace std;
+int N, ipt[5001];
+int dp[15000000][2];
+int idx(int i,int j){
+	return N*(i-1) - (i-1)*(i-2)/2 + j;
+}
+int main(){
+	ios_base::sync_with_stdio(0); cin.tie(0);
+	cin>>N;
+	for(int i=1;i<=N;i++) cin>>ipt[i];
+	for(int i=1;i<=N;i++) {
+		 dp[(idx(i,i))][0] = 0;
+		 dp[(idx(i,i))][1] = ipt[i];
+	}
+	for(int l=2;l<=N;l++){
+		for(int i=1;i<=N;i++){
+			if(i+l-1>N) continue;
+			if( dp[idx(i,i+l-2)][l%2] + ipt[i+l-1] > dp[idx(i+1,i+l-1)][l%2] + ipt[i]){
+				dp[idx(i,i+l-1)][l%2] = dp[idx(i,i+l-2)][l%2] + ipt[i+l-1];
+				dp[idx(i,i+l-1)][(l+1)%2] = dp[idx(i,i+l-2)][(l+1)%2];
+			} else {
+				dp[idx(i,i+l-1)][l%2] = dp[idx(i+1,i+l-1)][l%2] + ipt[i];
+				dp[idx(i,i+l-1)][(l+1)%2] = dp[idx(i+1,i+l-1)][(l+1)%2];
+			}
+		}
+	}
+	cout<<dp[idx(1,N)][N%2];
+}
