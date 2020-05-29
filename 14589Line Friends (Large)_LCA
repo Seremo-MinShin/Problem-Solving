@@ -1,0 +1,53 @@
+#include<bits/stdc++.h>
+using namespace std;
+using ll = long long;
+int par[150001][18];
+struct Line{
+    int l, r, idx, dep;
+}line[150001];
+int N,Q;
+int LCA(int a, int b){
+    if(line[a].dep<line[b].dep) swap(a,b);
+    int ret=0;
+    for(int i=17;i>=0;i--){
+        if(line[b].r<line[par[a][i]].l){
+            a=par[a][i];
+            ret+=(1<<i);
+        }
+    }
+    if(line[a].l<=line[b].r ) return 1;
+    a=par[a][0]; ret++;
+    if(line[a].l<=line[b].r ) {
+        if(a==b) return ret;
+        else return ret+1;
+    }
+    else return -1;
+}
+int main(){
+    ios_base::sync_with_stdio(0); cin.tie(0);
+    cin>>N;
+    for(int i=1;i<=N;i++){
+        cin>>line[i].l>>line[i].r; line[i].idx=i;
+    }
+    sort(line+1,line+N+1,[&](Line a, Line b){
+        return a.l<b.l;
+    });
+    int j=1;
+    for(int i=1;i<=N;i++){
+        while(line[j].r<line[i].l) j++;
+        par[line[i].idx][0]=line[j].idx;
+        line[i].dep=i;
+    }
+    sort(line+1,line+N+1,[&](Line a, Line b){
+        return a.idx<b.idx;
+    });
+    for(int i=1;i<18;i++)
+        for(int j=1;j<=N;j++)
+            par[j][i]=par[par[j][i-1]][i-1];
+    cin>>Q;
+    for(int i=1;i<=Q;i++){
+        int a,b;
+        cin>>a>>b;
+        cout<<LCA(a,b)<<'\n';
+    }
+}
