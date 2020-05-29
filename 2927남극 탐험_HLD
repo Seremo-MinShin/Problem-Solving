@@ -1,0 +1,112 @@
+#include<bits/stdc++.h>
+using namespace std;
+struct SEG{
+    int n, tree[1<<16];
+    void init(int n){
+        (*this).n=n;
+        for(int i=1;i<=2*n;i++) tree[i]=0;
+    }
+    void update(int a, int s){
+        a+=n; tree[a]=s;
+        while(a>1) tree[a/=2]=tree[a]+tree[a^1];
+    }
+    int query(int l, int r){
+        int ret=0; l+=n, r+=n+1;
+        while(l<r){
+            if(l%2) ret+=tree[l++];
+            if(r%2) ret+=tree[--r];
+            l/=2; r/=2;
+        }
+        return ret;
+    }
+}seg;
+int dn=0, chain[1<<15], tail[1<<15], dti[1<<15];
+int dfsn[1<<15], sz[1<<15], par[1<<15], dep[1<<15];
+vector<int> G[1<<15]; int penguin[1<<15];
+void dfs(int a, int bef){
+    sz[a]=1; dep[a]=dep[bef]+1, par[a]=bef;
+    for(int i:G[a]){
+        if(i!=bef){
+            dfs(i,a);
+            sz[a]+=sz[i];
+        }
+    }
+}
+void hld(int a, int bef, int cn){
+    dfsn[a]=++dn;
+    dti[dn]=a;
+    chain[dn]=cn;
+    tail[cn]=dn;
+    int idx=0;
+    for(int i:G[a]){
+        if(i!=bef && sz[i]>sz[idx]) idx=i;
+    }
+    if(idx==0) return;
+    hld(idx,a,cn);
+    for(int i:G[a]){
+        if(i!=bef && i!=idx)
+            hld(i,a,dn+1);
+    }
+}
+void update(int a, int s){
+    seg.update(dfsn[a],s);
+}
+int query(int a, int s){
+    a=dfsn[a], s=dfsn[s]; int ret=0;
+    while(chain[a]!=chain[s]){
+        int ha=chain[a], hs=chain[s];
+        if(dep[dti[ha]]<dep[dti[hs]]) swap(a,s), swap(ha,hs);
+        ret+=seg.query(ha,a);
+        a=dfsn[par[dti[ha]]];
+    }
+    if(dep[dti[a]]<dep[dti[s]]) swap(a,s);
+    ret+=seg.query(s,a);
+    return ret;
+}
+struct UFT{
+    int n, par[1<<15];
+    void init(int n){ (*this).n=n; for(int i=1;i<=n;i++) par[i]=i; }
+    int find(int a){ return ((a==par[a])?a:(par[a]=find(par[a]))); }
+    void merge(int a, int s){ int d=find(a), f=find(s); if(d!=f) par[d]=f; }
+}uft;
+struct QUERY{
+    char c; int a,b;
+}q[1<<19];
+int main(){
+    ios_base::sync_with_stdio(0); cin.tie(0);
+    int N,Q;
+    cin>>N; uft.init(N); seg.init(N);
+    for(int i=1;i<=N;i++) cin>>penguin[i];
+    cin>>Q;
+    for(int i=1;i<=Q;i++){
+        string s; char c; int a,b;
+        cin>>s>>a>>b;
+        q[i].c=c=s[0], q[i].a=a, q[i].b=b;
+        if(c=='b'&&uft.find(a)!=uft.find(b)){uft.merge(a,b); G[a].push_back(b); G[b].push_back(a); }
+    }
+    for(int i=1;i<=N;i++){
+        if(uft.find(1)!=uft.find(i)){
+            uft.merge(1,i);
+            G[1].push_back(i); G[i].push_back(1);
+        }
+    }
+    uft.init(N);
+    dfs(1,1);
+    hld(1,1,1);
+    for(int i=1;i<=N;i++) update(i,penguin[i]);
+    for(int i=1;i<=Q;i++){
+        char c=q[i].c; int a=q[i].a, b=q[i].b;
+        if(c=='b'){
+            if(uft.find(a)!=uft.find(b)){
+                cout<<"yes\n"; uft.merge(a,b);
+            } else {
+                cout<<"no\n";
+            }
+        }
+        else if(c=='p') update(a,b);
+        else if(c=='e') {
+            if(uft.find(a)!=uft.find(b)) cout<<"impossible\n";
+            else cout<<query(a,b)<<'\n';
+        }
+    }
+}
